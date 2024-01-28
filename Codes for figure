@@ -131,4 +131,41 @@ awk 'BEGIN{FS="\t"}{if($1 >= 13){print $0}}' All-targetgene-count.txt > hub-gene
 awk '{print $2}' hub-gene.txt |grep -v "geneId" > hub-gene.id
 awk 'BEGIN{FS="\t"}{if($1 ==1 ){print $0}}' All-targetgene-count.txt |awk '{print $2}' > targetgene-boundby1TF.id
 
-
+5. Get tissue dynamic network
+#Usage: python get-tissue-net.py exp/sam.txt atac/sam.gene ribo-10%grn-gene.txt rna-10%grn-gene.txt all-tftg-network.txt > sam-final-network.txt
+import sys
+import pandas as pd
+#input exp.txt
+dexp = {}
+for i in open(sys.argv[1],'r'):
+        i=i.strip().split("\t")
+        dexp[i[0]] = i[1]
+#input atacgene
+atac = []
+for i in open(sys.argv[2],'r'):
+        i=i.strip().split("\t")
+        atac.append(i[0])
+#input rna&ribo grn
+ribogrn ={}
+rnagrn = {}
+for i in open(sys.argv[3],'r'):
+        r=i.strip().split("\t")
+        str1 = r[0]+"-"+r[1]
+        ribogrn[str1] = r[2]
+for i in open(sys.argv[4],'r'):
+        r=i.strip().split("\t")
+        str2 = r[0]+"-"+r[1]
+        rnagrn[str2] = r[2]
+#input cuttag pair
+for i in open(sys.argv[5],'r'):
+        s=i.strip().split("\t")
+        g1 = dexp.get(s[0],'0')
+        g2 = dexp.get(s[1],'0')
+        if float(g1) > 1 and float(g2) > 1 and s[1] in atac:
+                        #print(i.strip())
+                str3 = s[0]+"-"+s[1]
+                w1 = ribogrn.get(str3,'0')
+                w2 = rnagrn.get(str3,'0')
+                if float(w1) != 0 or float(w2) != 0:
+                        w3 = float(w1)+float(w2)+float(s[2])
+                        print(s[0]+"\t"+s[1]+"\t"+str(w3))
